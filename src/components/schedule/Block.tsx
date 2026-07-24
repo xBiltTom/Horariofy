@@ -1,7 +1,12 @@
+import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
+import { Trash2 } from "lucide-react";
 import { minToTime } from "@/utils/time";
 import { COURSE_COLOR_STYLES } from "@/utils/colors";
-import type { Block as BlockType, Course } from "@/types";
+import { DAY_LABELS, type Block as BlockType, type Course } from "@/types";
+import { useScheduleStore } from "@/stores/useScheduleStore";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CourseForm } from "@/components/sidebar/CourseForm";
 import { ResizeHandle } from "./ResizeHandle";
 
 interface BlockProps {
@@ -30,6 +35,10 @@ export function Block({
   // If the block is very small (e.g. 15 mins), we might want to hide the time or location
   const duration = block.endMin - block.startMin;
   const isCompact = duration <= 30;
+
+  const [open, setOpen] = useState(false);
+  const updateCourse = useScheduleStore((s) => s.updateCourse);
+  const removeBlock = useScheduleStore((s) => s.removeBlock);
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `block-${block.id}`,
@@ -66,33 +75,70 @@ export function Block({
         style={{ backgroundColor: style.solid }}
       />
       
-      <div className="pl-1.5 flex flex-col h-full relative z-10">
-        <span 
-          className="text-xs font-semibold leading-tight truncate" 
-          style={{ color: style.text }}
-        >
-          {course.name}
-        </span>
-        
-        {!isCompact && (
-          <>
-            <span 
-              className="text-[10px] opacity-80 mt-0.5 truncate" 
-              style={{ color: style.text }}
-            >
-              {minToTime(block.startMin)} - {minToTime(block.endMin)}
-            </span>
-            {course.location && (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
+          render={
+            <button type="button" className="pl-1.5 flex flex-col h-full relative z-10 w-full text-left">
               <span 
-                className="text-[10px] opacity-70 mt-auto truncate" 
+                className="text-xs font-semibold leading-tight truncate" 
                 style={{ color: style.text }}
               >
-                {course.location}
+                {course.name}
               </span>
-            )}
-          </>
-        )}
-      </div>
+              
+              {!isCompact && (
+                <>
+                  <span 
+                    className="text-[10px] opacity-80 mt-0.5 truncate" 
+                    style={{ color: style.text }}
+                  >
+                    {minToTime(block.startMin)} - {minToTime(block.endMin)}
+                  </span>
+                  {course.location && (
+                    <span 
+                      className="text-[10px] opacity-70 mt-auto truncate" 
+                      style={{ color: style.text }}
+                    >
+                      {course.location}
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
+          }
+        />
+        <PopoverContent className="w-72 p-0" align="start">
+          <div className="p-3 border-b">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">{course.name}</h4>
+              <button 
+                onClick={() => removeBlock(block.id)}
+                className="text-destructive hover:bg-destructive/10 p-1.5 rounded-md transition-colors"
+                title="Eliminar bloque"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {DAY_LABELS[block.day]} de {minToTime(block.startMin)} a {minToTime(block.endMin)}
+            </p>
+          </div>
+          <div className="p-3">
+            <CourseForm
+              initialName={course.name}
+              initialProfessor={course.professor}
+              initialLocation={course.location}
+              initialColor={course.color}
+              submitLabel="Guardar cambios"
+              onCancel={() => setOpen(false)}
+              onSubmit={(data) => {
+                updateCourse(course.id, data);
+                setOpen(false);
+              }}
+            />
+          </div>
+        </PopoverContent>
+      </Popover>
 
       {/* Resize Handle only visible when not dragging the block itself */}
       {!isDragging && !isOverlay && (
