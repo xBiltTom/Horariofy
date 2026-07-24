@@ -11,22 +11,38 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useScheduleStore } from "@/stores/useScheduleStore";
 import { SchedulePreview } from "./SchedulePreview";
 import { useExportOptions } from "./useExportOptions";
 import { exportToPng } from "./exportSchedule";
 import { CURATED_THEMES } from "./exportThemes";
-import type { ExportTheme } from "./exportTypes";
+import type { ExportTheme, ExportOptions } from "./exportTypes";
+import type { SharedData } from "@/utils/share";
 
 const PREVIEW_WIDTH = 1100;
 
 interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  sharedData?: SharedData;
 }
 
-export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
-  const { courses, blocks, config } = useScheduleStore();
+export function ExportDialog({ open, onOpenChange, sharedData }: ExportDialogProps) {
+  const storeCourses = useScheduleStore((s) => s.courses);
+  const storeBlocks = useScheduleStore((s) => s.blocks);
+  const storeConfig = useScheduleStore((s) => s.config);
+
+  const courses = sharedData?.courses ?? storeCourses;
+  const blocks = sharedData?.blocks ?? storeBlocks;
+  const config = sharedData?.config ?? storeConfig;
+  
   const { options, update, generateRandomTheme } = useExportOptions();
 
   const innerRef = useRef<HTMLDivElement>(null);

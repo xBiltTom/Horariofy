@@ -9,6 +9,7 @@ interface DayColumnProps {
   minuteHeight: number;
   gridStartMin: number;
   gridEndMin: number;
+  isReadOnly?: boolean;
 }
 
 export function DayColumn({
@@ -18,12 +19,14 @@ export function DayColumn({
   minuteHeight,
   gridStartMin,
   gridEndMin,
+  isReadOnly = false,
 }: DayColumnProps) {
   const height = (gridEndMin - gridStartMin) * minuteHeight;
 
   const { setNodeRef, isOver } = useDroppable({
     id: `day-${day}`,
     data: { type: "day", day },
+    disabled: isReadOnly,
   });
 
   // Calculate overlapping columns
@@ -78,8 +81,8 @@ export function DayColumn({
 
   return (
     <div 
-      ref={setNodeRef}
-      className={`relative flex-1 border-r border-border/50 min-w-[120px] transition-colors ${isOver ? 'bg-accent/20' : ''}`}
+      ref={isReadOnly ? undefined : setNodeRef}
+      className={`relative flex-1 border-r border-border/50 min-w-[120px] transition-colors ${isOver && !isReadOnly ? 'bg-accent/20' : ''}`}
     >
       <div className="relative w-full" style={{ height: `${height}px` }}>
         {sortedBlocks.map((block) => {
@@ -95,6 +98,7 @@ export function DayColumn({
               gridStartMin={gridStartMin}
               col={layout.col}
               maxCol={layout.maxCol}
+              isReadOnly={isReadOnly}
             />
           );
         })}

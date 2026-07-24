@@ -2,15 +2,31 @@
 
 import { useMemo } from "react";
 import { useScheduleStore } from "@/stores/useScheduleStore";
-import { DAYS, DAY_LABELS, type Course, type Block as BlockType } from "@/types";
+import { DAYS, DAY_LABELS, type Course, type Block as BlockType, type ScheduleConfig } from "@/types";
 import { hourMarks } from "@/utils/time";
 import { TimeColumn } from "./TimeColumn";
 import { DayColumn } from "./DayColumn";
 
 const MINUTE_HEIGHT = 80 / 60; // Exactamente 80px por hora
 
-export function ScheduleGrid() {
-  const { blocks, courses, config } = useScheduleStore();
+interface ScheduleGridProps {
+  initialCourses?: Course[];
+  initialBlocks?: BlockType[];
+  initialConfig?: ScheduleConfig;
+  isReadOnly?: boolean;
+}
+
+export function ScheduleGrid({
+  initialCourses,
+  initialBlocks,
+  initialConfig,
+  isReadOnly = false,
+}: ScheduleGridProps = {}) {
+  const store = useScheduleStore();
+  
+  const courses = initialCourses ?? store.courses;
+  const blocks = initialBlocks ?? store.blocks;
+  const config = initialConfig ?? store.config;
 
   const coursesMap = useMemo(() => {
     return courses.reduce((acc, course) => {
@@ -28,6 +44,7 @@ export function ScheduleGrid() {
     }
     return acc;
   }, [blocks]);
+  
   const totalHeight = (config.endMin - config.startMin) * MINUTE_HEIGHT;
 
 
@@ -101,6 +118,7 @@ export function ScheduleGrid() {
                   minuteHeight={MINUTE_HEIGHT}
                   gridStartMin={config.startMin}
                   gridEndMin={config.endMin}
+                  isReadOnly={isReadOnly}
                 />
               ))}
             </div>

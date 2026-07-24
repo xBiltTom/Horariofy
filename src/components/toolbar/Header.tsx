@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Menu, Settings2 } from "lucide-react";
+import { Download, Menu, Settings2, Share2, Check } from "lucide-react";
 import { useScheduleStore } from "@/stores/useScheduleStore";
 import { ExportDialog } from "@/features/export/ExportDialog";
+import { encodeScheduleData } from "@/utils/share";
 import {
   Select,
   SelectContent,
@@ -13,9 +14,19 @@ import {
 } from "@/components/ui/select";
 
 export function Header() {
-  const { config, setConfig, mobileSidebarOpen, setMobileSidebarOpen } =
+  const { config, setConfig, mobileSidebarOpen, setMobileSidebarOpen, courses, blocks } =
     useScheduleStore();
   const [exportOpen, setExportOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    const encoded = encodeScheduleData(courses, blocks, config);
+    const url = `${window.location.origin}/share?s=${encoded}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <header className="bg-background/70 supports-[backdrop-filter]:bg-background/50 sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b px-4 md:px-6 backdrop-blur-md transition-all">
@@ -92,15 +103,27 @@ export function Header() {
           </div>
         </div>
 
-        {/* Botón de exportar */}
-        <button
-          type="button"
-          onClick={() => setExportOpen(true)}
-          className="bg-slate-900 text-slate-50 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95"
-        >
-          <Download className="size-3.5" />
-          <span>Exportar</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Botón de compartir */}
+          <button
+            type="button"
+            onClick={handleShare}
+            className="flex h-9 items-center gap-1.5 rounded-full border border-border/60 bg-background px-4 text-xs font-semibold shadow-sm transition-all hover:bg-muted active:scale-95 text-foreground"
+          >
+            {copied ? <Check className="size-3.5 text-green-500" /> : <Share2 className="size-3.5" />}
+            <span>{copied ? "Copiado" : "Compartir"}</span>
+          </button>
+
+          {/* Botón de exportar */}
+          <button
+            type="button"
+            onClick={() => setExportOpen(true)}
+            className="bg-slate-900 text-slate-50 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95"
+          >
+            <Download className="size-3.5" />
+            <span>Exportar</span>
+          </button>
+        </div>
       </div>
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
