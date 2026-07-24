@@ -75,15 +75,15 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           {/* Panel de opciones */}
-          <div className="flex w-72 shrink-0 flex-col gap-5 overflow-y-auto border-r p-5">
+          <div className="flex w-full md:w-72 shrink-0 flex-col gap-5 overflow-y-auto border-r p-5">
             <Section title="Título">
               <input
                 value={options.title}
                 onChange={(e) => update("title", e.target.value)}
                 placeholder="Ciclo 2026-1"
-                className="h-9 w-full rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:border-accent"
+                className="h-9 w-full rounded-md border border-input bg-background px-2.5 text-sm outline-none focus:border-slate-600 dark:focus:border-slate-400"
               />
             </Section>
 
@@ -96,7 +96,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                     onClick={() => update("theme", theme)}
                     className={`flex items-center gap-2.5 rounded-md border px-2.5 py-2 text-left text-sm transition-colors ${
                       options.theme.id === theme.id
-                        ? "border-accent bg-accent/5"
+                        ? "border-slate-600 bg-slate-600/5 dark:border-slate-400 dark:bg-slate-400/10"
                         : "border-border hover:bg-muted"
                     }`}
                   >
@@ -114,7 +114,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                     </span>
                     <span className="flex-1">{theme.name}</span>
                     {options.theme.id === theme.id && (
-                      <span className="text-accent text-xs">●</span>
+                      <span className="text-slate-600 dark:text-slate-400 text-xs">●</span>
                     )}
                   </button>
                 ))}
@@ -137,7 +137,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                   max={20}
                   value={options.fontSize}
                   onChange={(e) => update("fontSize", Number(e.target.value))}
-                  className="flex-1 accent-[var(--accent)]"
+                  className="flex-1 accent-slate-600 dark:accent-slate-400"
                 />
                 <span className="text-muted-foreground w-12 text-right text-xs tabular-nums">
                   {options.fontSize}px
@@ -155,7 +155,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                   onChange={(e) =>
                     update("gridLineIntensity", Number(e.target.value))
                   }
-                  className="flex-1 accent-[var(--accent)]"
+                  className="flex-1 accent-slate-600 dark:accent-slate-400"
                 />
                 <span className="text-muted-foreground w-12 text-right text-xs tabular-nums">
                   {options.gridLineIntensity}%
@@ -226,7 +226,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
           </div>
         </div>
 
-        <DialogFooter className="border-t px-5 py-3 sm:justify-end">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 border-t p-4 bg-background rounded-b-lg">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -236,13 +236,13 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
           </Button>
           <Button onClick={handleExport} disabled={exporting}>
             {exporting ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin mr-2" />
             ) : (
-              <Download className="size-4" />
+              <Download className="size-4 mr-2" />
             )}
             {exporting ? "Generando..." : "Descargar PNG"}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -275,20 +275,20 @@ function Toggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <Label className="flex items-center justify-between gap-2 font-normal">
+    <Label className="flex items-center justify-between gap-2 font-normal cursor-pointer">
       <span className="text-sm">{label}</span>
       <button
         type="button"
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-accent" : "bg-muted-foreground/30"
+        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors ${
+          checked ? "bg-slate-600 dark:bg-slate-400" : "bg-muted-foreground/30"
         }`}
       >
         <span
-          className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform ${
-            checked ? "translate-x-4" : "translate-x-0.5"
+          className={`pointer-events-none inline-block size-4 transform rounded-full bg-background shadow-sm ring-0 transition duration-200 ease-in-out ${
+            checked ? "translate-x-4" : "translate-x-0"
           }`}
         />
       </button>
