@@ -1,5 +1,6 @@
 "use client";
 
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useScheduleStore } from "@/stores/useScheduleStore";
 import { CourseCard } from "./CourseCard";
 import { CreateCourseButton } from "./CreateCourseButton";
@@ -21,9 +22,14 @@ export function CourseList() {
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
-          {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
-          ))}
+          <SortableContext 
+            items={courses.map(c => `new-course-${c.id}`)} 
+            strategy={verticalListSortingStrategy}
+          >
+            {courses.map((course) => (
+              <CourseCard key={course.id} course={course} />
+            ))}
+          </SortableContext>
         </div>
       )}
     </div>

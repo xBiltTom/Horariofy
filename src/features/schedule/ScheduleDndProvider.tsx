@@ -43,6 +43,24 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
     setActiveType(null);
 
     if (!over) return;
+
+    // 1. Reordenar cursos en la barra lateral
+    if (
+      active.data.current?.type === "course" &&
+      over.data.current?.type === "course"
+    ) {
+      const activeCourseId = (active.id as string).replace("new-course-", "");
+      const overCourseId = (over.id as string).replace("new-course-", "");
+      useScheduleStore.getState().reorderCourses(activeCourseId, overCourseId);
+      return;
+    }
+
+    // 2. Si estamos en móvil y el sidebar está abierto, evitamos que un drop
+    // accidental caiga en la grilla que está de fondo (traspasando el sidebar)
+    if (useScheduleStore.getState().mobileSidebarOpen) {
+      return;
+    }
+
     if (over.data.current?.type !== "day") return;
 
     const day = over.data.current.day as number;

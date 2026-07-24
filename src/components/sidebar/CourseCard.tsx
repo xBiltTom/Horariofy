@@ -2,7 +2,8 @@
 
 import { useId, useState } from "react";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Popover,
   PopoverContent,
@@ -26,10 +27,23 @@ export function CourseCard({ course, isOverlay = false }: CourseCardProps) {
   const labelId = useId();
   const style = COURSE_COLOR_STYLES[course.color];
 
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: `new-course-${course.id}`,
     data: { type: "course", courseId: course.id },
   });
+
+  const dndStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    backgroundColor: style.soft,
+  };
 
   return (
     <div
@@ -38,7 +52,7 @@ export function CourseCard({ course, isOverlay = false }: CourseCardProps) {
       {...listeners}
       suppressHydrationWarning
       className={`group relative flex items-start gap-2.5 rounded-lg border border-transparent p-2.5 transition-colors hover:border-border cursor-grab active:cursor-grabbing ${isDragging && !isOverlay ? 'opacity-40' : ''}`}
-      style={{ backgroundColor: style.soft }}
+      style={dndStyle}
     >
       <span
         aria-hidden

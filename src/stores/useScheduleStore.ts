@@ -22,6 +22,7 @@ interface ScheduleStore {
   }) => string;
   updateCourse: (id: string, data: Partial<Omit<Course, "id">>) => void;
   removeCourse: (id: string) => void;
+  reorderCourses: (activeId: string, overId: string) => void;
 
   addBlock: (data: {
     courseId: string;
@@ -93,6 +94,17 @@ export const useScheduleStore = create<ScheduleStore>()(
           courses: s.courses.filter((c) => c.id !== id),
           blocks: s.blocks.filter((b) => b.courseId !== id),
         })),
+
+      reorderCourses: (activeId, overId) =>
+        set((s) => {
+          const oldIndex = s.courses.findIndex((c) => c.id === activeId);
+          const newIndex = s.courses.findIndex((c) => c.id === overId);
+          if (oldIndex === -1 || newIndex === -1) return s;
+          const newCourses = [...s.courses];
+          const [removed] = newCourses.splice(oldIndex, 1);
+          newCourses.splice(newIndex, 0, removed);
+          return { courses: newCourses };
+        }),
 
       addBlock: ({ courseId, day, startMin, endMin }) => {
         const id = uid("b_");
