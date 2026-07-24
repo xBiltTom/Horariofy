@@ -36,6 +36,7 @@ export function CourseCard({ course, isOverlay = false }: CourseCardProps) {
       ref={setNodeRef}
       {...attributes}
       {...listeners}
+      suppressHydrationWarning
       className={`group relative flex items-start gap-2.5 rounded-lg border border-transparent p-2.5 transition-colors hover:border-border cursor-grab active:cursor-grabbing ${isDragging && !isOverlay ? 'opacity-40' : ''}`}
       style={{ backgroundColor: style.soft }}
     >

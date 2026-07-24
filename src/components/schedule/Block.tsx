@@ -10,9 +10,19 @@ interface BlockProps {
   minuteHeight: number;
   gridStartMin: number;
   isOverlay?: boolean;
+  col?: number;
+  maxCol?: number;
 }
 
-export function Block({ block, course, minuteHeight, gridStartMin, isOverlay = false }: BlockProps) {
+export function Block({ 
+  block, 
+  course, 
+  minuteHeight, 
+  gridStartMin, 
+  isOverlay = false,
+  col = 0,
+  maxCol = 1
+}: BlockProps) {
   const top = (block.startMin - gridStartMin) * minuteHeight;
   const height = (block.endMin - block.startMin) * minuteHeight;
   const style = COURSE_COLOR_STYLES[course.color];
@@ -26,17 +36,28 @@ export function Block({ block, course, minuteHeight, gridStartMin, isOverlay = f
     data: { type: "block", blockId: block.id },
   });
 
+  // Calculate horizontal position based on overlapping columns
+  const widthPercent = 100 / maxCol;
+  const leftPercent = col * widthPercent;
+  // Apply a small gap between overlapping blocks (except if maxCol is 1)
+  const widthStr = maxCol > 1 ? `calc(${widthPercent}% - 4px)` : 'auto';
+
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      className={`absolute inset-x-1 rounded-md border p-1.5 shadow-sm transition-all hover:shadow-md overflow-hidden flex flex-col group cursor-grab active:cursor-grabbing ${isDragging && !isOverlay ? 'opacity-40' : ''}`}
+      suppressHydrationWarning
+      className={`absolute rounded-md border p-1.5 shadow-sm transition-all hover:shadow-md overflow-hidden flex flex-col group cursor-grab active:cursor-grabbing ${isDragging && !isOverlay ? 'opacity-40' : ''}`}
       style={{
         top: `${top}px`,
         height: `${height}px`,
+        width: widthStr,
+        left: maxCol > 1 ? `calc(${leftPercent}% + 2px)` : '4px',
+        right: maxCol > 1 ? 'auto' : '4px',
         backgroundColor: style.soft,
         borderColor: style.border,
+        zIndex: isDragging ? 40 : 10 + col, // Ensure later columns overlap slightly if we wanted negative margins, but here they are side by side
       }}
     >
       {/* Indicador de color sólido a la izquierda */}
