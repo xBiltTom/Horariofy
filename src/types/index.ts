@@ -18,7 +18,23 @@ export type CourseColor =
   | "violet"
   | "sky"
   | "fuchsia"
-  | "orange";
+  | "orange"
+  | "red"
+  | "yellow"
+  | "emerald"
+  | "cyan"
+  | "blue"
+  | "indigo"
+  | "pink"
+  | "slate"
+  | "stone"
+  | "zinc"
+  | "purple"
+  | "green"
+  | "navy"
+  | "brown"
+  | "maroon"
+  | "mint";
 
 export const COURSE_COLORS: CourseColor[] = [
   "rose",
@@ -29,6 +45,22 @@ export const COURSE_COLORS: CourseColor[] = [
   "sky",
   "fuchsia",
   "orange",
+  "red",
+  "yellow",
+  "emerald",
+  "cyan",
+  "blue",
+  "indigo",
+  "pink",
+  "slate",
+  "stone",
+  "zinc",
+  "purple",
+  "green",
+  "navy",
+  "brown",
+  "maroon",
+  "mint",
 ];
 
 export interface CourseSession {
