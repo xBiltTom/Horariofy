@@ -22,6 +22,7 @@ interface ScheduleStore {
   updateCourse: (id: string, data: Partial<Omit<Course, "id">>) => void;
   removeCourse: (id: string) => void;
   reorderCourses: (activeId: string, overId: string) => void;
+  shuffleColors: () => void;
 
   addBlock: (data: {
     courseId: string;
@@ -122,6 +123,25 @@ export const useScheduleStore = create<ScheduleStore>()(
           const newCourses = [...s.courses];
           const [removed] = newCourses.splice(oldIndex, 1);
           newCourses.splice(newIndex, 0, removed);
+          return { courses: newCourses };
+        }),
+
+      shuffleColors: () =>
+        set((s) => {
+          const { COURSE_COLORS } = require("@/types");
+          const availableColors = [...COURSE_COLORS];
+          // Fisher-Yates shuffle
+          for (let i = availableColors.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [availableColors[i], availableColors[j]] = [availableColors[j], availableColors[i]];
+          }
+          
+          let colorIndex = 0;
+          const newCourses = s.courses.map((c) => {
+            const color = availableColors[colorIndex % availableColors.length];
+            colorIndex++;
+            return { ...c, color };
+          });
           return { courses: newCourses };
         }),
 
