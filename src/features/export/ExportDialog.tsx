@@ -134,7 +134,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                 <input
                   type="range"
                   min={12}
-                  max={20}
+                  max={50}
                   value={options.fontSize}
                   onChange={(e) => update("fontSize", Number(e.target.value))}
                   className="flex-1 accent-slate-600 dark:accent-slate-400"
