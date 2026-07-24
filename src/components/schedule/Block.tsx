@@ -2,6 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { minToTime } from "@/utils/time";
 import { COURSE_COLOR_STYLES } from "@/utils/colors";
 import type { Block as BlockType, Course } from "@/types";
+import { ResizeHandle } from "./ResizeHandle";
 
 interface BlockProps {
   block: BlockType;
@@ -71,6 +72,16 @@ export function Block({ block, course, minuteHeight, gridStartMin, isOverlay = f
           </>
         )}
       </div>
+
+      {/* Resize Handle only visible when not dragging the block itself */}
+      {!isDragging && !isOverlay && (
+        <ResizeHandle
+          blockId={block.id}
+          startMin={block.startMin}
+          initialEndMin={block.endMin}
+          minuteHeight={minuteHeight}
+        />
+      )}
     </div>
   );
 }
