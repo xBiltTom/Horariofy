@@ -64,51 +64,63 @@ export function CourseCard({ course, isOverlay = false }: CourseCardProps) {
           </p>
         )}
       </div>
-      <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+      <Popover 
+        open={menuOpen || editing} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setMenuOpen(false);
+            setEditing(false);
+          } else {
+            setMenuOpen(true);
+          }
+        }}
+      >
         <PopoverTrigger
           aria-label="Opciones del curso"
           className="opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-black/5 absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-md transition-opacity"
-          render={<button type="button"><MoreHorizontal className="size-4" /></button>}
+          render={<button type="button" onPointerDown={(e) => e.stopPropagation()}><MoreHorizontal className="size-4" /></button>}
         />
-        <PopoverContent align="end" sideOffset={4} className="w-40 p-1">
-          <button
-            type="button"
-            onClick={() => {
-              setMenuOpen(false);
-              setEditing(true);
-            }}
-            className="hover:bg-muted flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
-          >
-            <Pencil className="size-3.5" />
-            Editar
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              removeCourse(course.id);
-              setMenuOpen(false);
-            }}
-            className="text-destructive hover:bg-destructive/10 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
-          >
-            <Trash2 className="size-3.5" />
-            Eliminar
-          </button>
-        </PopoverContent>
-      </Popover>
-      <Popover open={editing} onOpenChange={setEditing}>
-        <PopoverContent align="center" sideOffset={8} className="w-72">
-          <CourseForm
-            initialName={course.name}
-            initialProfessor={course.professor}
-            initialLocation={course.location}
-            initialColor={course.color}
-            submitLabel="Guardar"
-            onCancel={() => setEditing(false)}
-            onSubmit={(data) => {
-              updateCourse(course.id, data);
-              setEditing(false);
-            }}
-          />
+        <PopoverContent align="end" sideOffset={4} className={editing ? "w-72" : "w-40 p-1"}>
+          {editing ? (
+            <CourseForm
+              initialName={course.name}
+              initialProfessor={course.professor}
+              initialLocation={course.location}
+              initialColor={course.color}
+              submitLabel="Guardar"
+              onCancel={() => {
+                setEditing(false);
+                setMenuOpen(true);
+              }}
+              onSubmit={(data) => {
+                updateCourse(course.id, data);
+                setEditing(false);
+                setMenuOpen(false);
+              }}
+            />
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="hover:bg-muted flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+              >
+                <Pencil className="size-3.5" />
+                Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  removeCourse(course.id);
+                  setMenuOpen(false);
+                }}
+                className="text-destructive hover:bg-destructive/10 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+              >
+                <Trash2 className="size-3.5" />
+                Eliminar
+              </button>
+            </>
+          )}
         </PopoverContent>
       </Popover>
     </div>

@@ -35,7 +35,7 @@ export function ScheduleGrid() {
 
   return (
     <div className="flex-1 overflow-auto bg-background">
-      <div className="min-w-[700px] flex flex-col min-h-full relative">
+      <div id="schedule-grid-export" className="min-w-[700px] flex flex-col min-h-full relative bg-background">
         {/* Sticky Day Headers */}
         <div className="flex pl-16 border-b border-border/50 bg-background/95 backdrop-blur-sm z-20 sticky top-0 shadow-sm">
           {DAYS.map((day) => (

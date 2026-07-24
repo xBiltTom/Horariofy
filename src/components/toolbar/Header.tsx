@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarDays, Download } from "lucide-react";
+import { toPng } from "html-to-image";
 import { useScheduleStore } from "@/stores/useScheduleStore";
 
 export function Header() {
@@ -52,9 +53,28 @@ export function Header() {
           </select>
         </div>
 
-        {/* Botón de exportar (Placeholder) */}
+        {/* Botón de exportar */}
         <button
           type="button"
+          onClick={async () => {
+            const node = document.getElementById("schedule-grid-export");
+            if (!node) return;
+            try {
+              // Pequeño hack para asegurar que las fuentes/estilos estén listos
+              await new Promise((resolve) => setTimeout(resolve, 100));
+              const dataUrl = await toPng(node, {
+                cacheBust: true,
+                backgroundColor: "#ffffff",
+                pixelRatio: 2, // Mayor calidad
+              });
+              const link = document.createElement("a");
+              link.download = "mi-horario.png";
+              link.href = dataUrl;
+              link.click();
+            } catch (err) {
+              console.error("Error al exportar:", err);
+            }
+          }}
           className="flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 shadow-sm"
         >
           <Download className="size-3.5" />
