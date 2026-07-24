@@ -1,3 +1,5 @@
+import { CourseList } from "./CourseList";
+
 export function Sidebar() {
   return (
     <aside className="bg-sidebar flex w-72 shrink-0 flex-col border-r">
@@ -6,12 +8,8 @@ export function Sidebar() {
           Cursos
         </h2>
       </div>
-      <div className="flex flex-1 items-center justify-center p-6">
-        <p className="text-muted-foreground text-center text-sm leading-relaxed">
-          Crea tu primer curso
-          <br />
-          y arrástralo a la grilla.
-        </p>
+      <div className="flex-1 overflow-y-auto">
+        <CourseList />
       </div>
     </aside>
   );
