@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useDraggable } from "@dnd-kit/core";
 import {
   Popover,
   PopoverContent,
@@ -14,9 +15,10 @@ import { CourseForm } from "./CourseForm";
 
 interface CourseCardProps {
   course: Course;
+  isOverlay?: boolean;
 }
 
-export function CourseCard({ course }: CourseCardProps) {
+export function CourseCard({ course, isOverlay = false }: CourseCardProps) {
   const updateCourse = useScheduleStore((s) => s.updateCourse);
   const removeCourse = useScheduleStore((s) => s.removeCourse);
   const [editing, setEditing] = useState(false);
@@ -24,9 +26,17 @@ export function CourseCard({ course }: CourseCardProps) {
   const labelId = useId();
   const style = COURSE_COLOR_STYLES[course.color];
 
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `new-course-${course.id}`,
+    data: { type: "course", courseId: course.id },
+  });
+
   return (
     <div
-      className="group relative flex items-start gap-2.5 rounded-lg border border-transparent p-2.5 transition-colors hover:border-border"
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={`group relative flex items-start gap-2.5 rounded-lg border border-transparent p-2.5 transition-colors hover:border-border cursor-grab active:cursor-grabbing ${isDragging && !isOverlay ? 'opacity-40' : ''}`}
       style={{ backgroundColor: style.soft }}
     >
       <span

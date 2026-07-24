@@ -1,3 +1,4 @@
+import { useDraggable } from "@dnd-kit/core";
 import { minToTime } from "@/utils/time";
 import { COURSE_COLOR_STYLES } from "@/utils/colors";
 import type { Block as BlockType, Course } from "@/types";
@@ -7,9 +8,10 @@ interface BlockProps {
   course: Course;
   minuteHeight: number;
   gridStartMin: number;
+  isOverlay?: boolean;
 }
 
-export function Block({ block, course, minuteHeight, gridStartMin }: BlockProps) {
+export function Block({ block, course, minuteHeight, gridStartMin, isOverlay = false }: BlockProps) {
   const top = (block.startMin - gridStartMin) * minuteHeight;
   const height = (block.endMin - block.startMin) * minuteHeight;
   const style = COURSE_COLOR_STYLES[course.color];
@@ -18,9 +20,17 @@ export function Block({ block, course, minuteHeight, gridStartMin }: BlockProps)
   const duration = block.endMin - block.startMin;
   const isCompact = duration <= 30;
 
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `block-${block.id}`,
+    data: { type: "block", blockId: block.id },
+  });
+
   return (
     <div
-      className="absolute inset-x-1 rounded-md border p-1.5 shadow-sm transition-all hover:shadow-md overflow-hidden flex flex-col group cursor-pointer"
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={`absolute inset-x-1 rounded-md border p-1.5 shadow-sm transition-all hover:shadow-md overflow-hidden flex flex-col group cursor-grab active:cursor-grabbing ${isDragging && !isOverlay ? 'opacity-40' : ''}`}
       style={{
         top: `${top}px`,
         height: `${height}px`,

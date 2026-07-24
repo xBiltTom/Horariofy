@@ -80,6 +80,7 @@ export function ScheduleGrid() {
               {DAYS.map((day) => (
                 <DayColumn
                   key={day}
+                  day={day}
                   blocks={blocksByDay[day]}
                   courses={coursesMap}
                   minuteHeight={MINUTE_HEIGHT}
