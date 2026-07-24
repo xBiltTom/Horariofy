@@ -132,10 +132,23 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
     return null;
   };
 
+  function handleDragMove(event: import("@dnd-kit/core").DragMoveEvent) {
+    // Si arrastramos un curso hacia la derecha (hacia la grilla), ocultamos el sidebar en móvil
+    // para que el usuario pueda ver la grilla y soltarlo allí.
+    if (
+      activeType === "course" && 
+      useScheduleStore.getState().mobileSidebarOpen &&
+      event.delta.x > 50
+    ) {
+      useScheduleStore.getState().setMobileSidebarOpen(false);
+    }
+  }
+
   return (
     <DndContext
       sensors={sensors}
       onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >
       {children}
