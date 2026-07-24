@@ -75,12 +75,22 @@ export function Block({ block, course, minuteHeight, gridStartMin, isOverlay = f
 
       {/* Resize Handle only visible when not dragging the block itself */}
       {!isDragging && !isOverlay && (
-        <ResizeHandle
-          blockId={block.id}
-          startMin={block.startMin}
-          initialEndMin={block.endMin}
-          minuteHeight={minuteHeight}
-        />
+        <>
+          <ResizeHandle
+            blockId={block.id}
+            initialStartMin={block.startMin}
+            initialEndMin={block.endMin}
+            minuteHeight={minuteHeight}
+            position="top"
+          />
+          <ResizeHandle
+            blockId={block.id}
+            initialStartMin={block.startMin}
+            initialEndMin={block.endMin}
+            minuteHeight={minuteHeight}
+            position="bottom"
+          />
+        </>
       )}
     </div>
   );

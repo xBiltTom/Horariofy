@@ -31,7 +31,7 @@ interface ScheduleStore {
   }) => string;
   updateBlock: (id: string, data: Partial<Omit<Block, "id">>) => void;
   moveBlock: (id: string, day: Day, startMin: number) => void;
-  resizeBlock: (id: string, endMin: number) => void;
+  resizeBlock: (id: string, newStartMin: number, newEndMin: number) => void;
   removeBlock: (id: string) => void;
 
   setConfig: (data: Partial<typeof DEFAULT_CONFIG>) => void;
@@ -109,11 +109,14 @@ export const useScheduleStore = create<ScheduleStore>()(
           }),
         })),
 
-      resizeBlock: (id, endMin) =>
+      resizeBlock: (id, newStartMin, newEndMin) =>
         set((s) => ({
-          blocks: s.blocks.map((b) =>
-            b.id === id ? { ...b, endMin: Math.max(b.startMin + 15, endMin) } : b,
-          ),
+          blocks: s.blocks.map((b) => {
+            if (b.id !== id) return b;
+            // Garantizar al menos 15 minutos de duración
+            if (newEndMin - newStartMin < 15) return b;
+            return { ...b, startMin: newStartMin, endMin: newEndMin };
+          }),
         })),
 
       removeBlock: (id) =>
