@@ -40,8 +40,16 @@ interface ScheduleStore {
 export const useScheduleStore = create<ScheduleStore>()(
   persist(
     (set, get) => ({
-      courses: [],
-      blocks: [],
+      courses: [
+        { id: "c_seed1", name: "Diseño de Interfaces", professor: "Alan Turing", location: "Lab 3", color: "rose" },
+        { id: "c_seed2", name: "Estructuras de Datos", professor: "Grace Hopper", location: "Aula 101", color: "sky" },
+      ],
+      blocks: [
+        { id: "b_seed1", courseId: "c_seed1", day: 0, startMin: 9 * 60, endMin: 11 * 60 },
+        { id: "b_seed2", courseId: "c_seed1", day: 2, startMin: 9 * 60, endMin: 11 * 60 },
+        { id: "b_seed3", courseId: "c_seed2", day: 1, startMin: 14 * 60 + 30, endMin: 16 * 60 },
+        { id: "b_seed4", courseId: "c_seed2", day: 3, startMin: 14 * 60 + 30, endMin: 16 * 60 },
+      ],
       config: DEFAULT_CONFIG,
 
       addCourse: ({ name, professor = "", location = "", color }) => {
