@@ -1,12 +1,16 @@
 export function Sidebar() {
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-r bg-sidebar">
-      <div className="flex h-12 items-center border-b px-4">
-        <h2 className="text-sm font-medium text-sidebar-foreground">Cursos</h2>
+    <aside className="bg-sidebar flex w-72 shrink-0 flex-col border-r">
+      <div className="flex h-11 items-center border-b px-4">
+        <h2 className="text-foreground text-xs font-semibold tracking-wide uppercase">
+          Cursos
+        </h2>
       </div>
-      <div className="flex flex-1 items-center justify-center p-4">
-        <p className="text-muted-foreground text-center text-sm">
-          Tus cursos aparecerán aquí
+      <div className="flex flex-1 items-center justify-center p-6">
+        <p className="text-muted-foreground text-center text-sm leading-relaxed">
+          Crea tu primer curso
+          <br />
+          y arrástralo a la grilla.
         </p>
       </div>
     </aside>
