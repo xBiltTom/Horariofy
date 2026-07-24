@@ -144,7 +144,9 @@ export async function decodeScheduleData(encoded: string): Promise<SharedData | 
     console.warn("Unknown share format version:", version);
     return null;
   } catch (err) {
-    console.error("Failed to decode schedule data:", err);
+    // Return null silently. Invalid links are expected (truncated URL, copy-paste errors)
+    // and we want the UI to gracefully show the "Horario no encontrado" screen
+    // without triggering Next.js dev error overlays.
     return null;
   }
 }
