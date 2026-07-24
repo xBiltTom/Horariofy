@@ -45,7 +45,7 @@ export function Header() {
         {/* Configuración de Rango Horario (Oculto en móviles muy pequeños para dar espacio) */}
         <div className="hidden sm:flex items-center gap-2">
           <Settings2 className="size-3.5 text-muted-foreground/70" />
-          <div className="flex items-center rounded-full border border-border/60 bg-muted/20 px-1 py-0.5 shadow-sm">
+          <div className="flex h-9 items-center rounded-full border border-border/60 bg-muted/20 px-1 shadow-sm">
             <Select
               value={config.startMin.toString()}
               onValueChange={(val) => setConfig({ startMin: Number(val) })}
@@ -96,7 +96,7 @@ export function Header() {
         <button
           type="button"
           onClick={() => setExportOpen(true)}
-          className="bg-slate-900 text-slate-50 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 flex h-8 items-center gap-1.5 rounded-full px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95"
+          className="bg-slate-900 text-slate-50 hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95"
         >
           <Download className="size-3.5" />
           <span>Exportar</span>
