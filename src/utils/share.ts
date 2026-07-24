@@ -8,25 +8,34 @@ export interface SharedData {
   config: ScheduleConfig;
 }
 
-// ─── Packed binary format (arrays instead of objects) ───────────────────────
-// Eliminamos todas las keys de JSON para que el compresor tenga menos data.
-// Format: [type, professor, location]
-type PackedSession = [string, string, string];
-// Format: [name, color, packedSessions]
-type PackedCourse = [string, string, PackedSession[]];
-// Format: [courseIndex, sessionIndex, day, startMin, endMin]
-type PackedBlock = [number, number, number, number, number];
-// Format: [startMin, endMin]
-type PackedConfig = [number, number];
-// Format: [courses, blocks, config]
-type PackedSchedule = [PackedCourse[], PackedBlock[], PackedConfig];
+// ─── Wire format (internal, versioned) ──────────────────────────────────────
+// Each version is a self-contained type so migrating is straightforward.
 
-// ─── Base64url helpers (no padding, URL-safe) ────────────────────────────────
+// V1 — Initial packed format
+// Sessions: [type, professor, location]
+// Courses:  [name, color, sessions[]]
+// Blocks:   [courseIdx, sessionIdx, day, startMin, endMin]   ← absolute minutes
+// Config:   [startMin, endMin]
+type V1Session = [string, string, string];
+type V1Course  = [string, string, V1Session[]];
+type V1Block   = [number, number, number, number, number];
+type V1Config  = [number, number];
+type V1Payload = { v: 1; d: [V1Course[], V1Block[], V1Config] };
+
+// V2 — Relative offsets (smaller numbers → better DEFLATE compression)
+// Blocks:   [courseIdx, sessionIdx, day, startOffset, duration]
+//           where startOffset = startMin - config.startMin
+//           and   duration    = endMin   - startMin
+type V2Block   = [number, number, number, number, number];
+type V2Payload = { v: 2; d: [V1Course[], V2Block[], V1Config] };
+
+// CURRENT_VERSION — bump this when changing the format
+const CURRENT_VERSION = 2;
+
+// ─── Base64url helpers ────────────────────────────────────────────────────────
 function toBase64Url(bytes: Uint8Array): string {
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
@@ -34,127 +43,154 @@ function fromBase64Url(str: string): Uint8Array {
   const b64 = str.replace(/-/g, "+").replace(/_/g, "/");
   const binary = atob(b64);
   const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes;
 }
 
+// ─── Encoder ─────────────────────────────────────────────────────────────────
 /**
- * Compresses the schedule data using DEFLATE + base64url.
- * ~18-25% shorter than the previous LZString approach.
+ * Serializes and compresses schedule data into a short, URL-safe string.
+ * Format: DEFLATE(JSON({ v: 2, d: [...] })) → base64url
  */
 export function encodeScheduleData(
   courses: Course[],
   blocks: Block[],
   config: ScheduleConfig
 ): string {
-  // 1. Pack Courses and build index maps
+  // 1. Build index maps (IDs never leave the wire)
   const courseIdToIndex = new Map<string, number>();
   const sessionIdToIndex = new Map<string, number>();
 
-  const packedCourses: PackedCourse[] = courses.map((c, i) => {
+  const packedCourses: V1Course[] = courses.map((c, i) => {
     courseIdToIndex.set(c.id, i);
-    const packedSessions: PackedSession[] = (c.sessions || []).map((s, j) => {
+    const sessions: V1Session[] = (c.sessions || []).map((s, j) => {
       sessionIdToIndex.set(s.id, j);
       return [s.type, s.professor || "", s.location || ""];
     });
-    return [c.name, c.color, packedSessions];
+    return [c.name, c.color, sessions];
   });
 
-  // 2. Pack Blocks (replace IDs with numeric indices)
-  const packedBlocks: PackedBlock[] = blocks.map((b) => {
+  // 2. Pack blocks with relative offsets (v2)
+  const packedBlocks: V2Block[] = blocks.map((b) => {
     const cIdx = courseIdToIndex.get(b.courseId) ?? 0;
     const sIdx = sessionIdToIndex.get(b.sessionId) ?? 0;
-    return [cIdx, sIdx, b.day, b.startMin, b.endMin];
+    const startOffset = b.startMin - config.startMin;
+    const duration = b.endMin - b.startMin;
+    return [cIdx, sIdx, b.day, startOffset, duration];
   });
 
-  // 3. Pack Config
-  const packedConfig: PackedConfig = [config.startMin, config.endMin];
+  // 3. Config
+  const packedConfig: V1Config = [config.startMin, config.endMin];
 
-  // 4. Serialize and compress with DEFLATE level 9
-  const json = JSON.stringify([packedCourses, packedBlocks, packedConfig] as PackedSchedule);
+  // 4. Versioned payload → JSON → DEFLATE → base64url
+  const payload: V2Payload = {
+    v: 2,
+    d: [packedCourses, packedBlocks, packedConfig],
+  };
+
+  const json = JSON.stringify(payload);
   const compressed = deflateSync(strToU8(json), { level: 9 });
-
-  // 5. Encode as base64url (no padding, URL-safe, no extra encoding needed)
   return toBase64Url(compressed);
 }
 
+// ─── Decoder ─────────────────────────────────────────────────────────────────
 /**
- * Decompresses a base64url+DEFLATE encoded string back into schedule data.
- * Falls back to the older LZString format for backwards compatibility.
+ * Decompresses and deserializes a share URL payload.
+ * Supports: v2 (current), v1, and legacy LZString format.
  */
 export async function decodeScheduleData(encoded: string): Promise<SharedData | null> {
   try {
     let jsonString: string;
 
-    // Detect format: DEFLATE (base64url) vs legacy LZString
-    // LZString strings use chars like Q, N, h, I, etc. and can contain +
-    // base64url uses only A-Z, a-z, 0-9, -, _
+    // Detect encoding: base64url chars only → new DEFLATE format
+    // LZString URLs contain chars outside [A-Za-z0-9-_] (e.g. '+', letters like 'Q')
     const isBase64Url = /^[A-Za-z0-9\-_]+$/.test(encoded);
 
     if (isBase64Url) {
-      // New format: DEFLATE + base64url
-      const compressed = fromBase64Url(encoded);
-      jsonString = strFromU8(inflateSync(compressed));
+      jsonString = strFromU8(inflateSync(fromBase64Url(encoded)));
     } else {
-      // Legacy format: LZString (dynamically imported to avoid bundle cost)
+      // Legacy LZString — lazy import so it doesn't bloat the bundle
       const LZString = (await import("lz-string")).default;
       const result = LZString.decompressFromEncodedURIComponent(encoded);
       if (!result) return null;
       jsonString = result;
     }
 
-    const rawData = JSON.parse(jsonString);
+    const raw = JSON.parse(jsonString);
 
-    // Fallback: old uncompressed SharedData object
-    if (rawData && !Array.isArray(rawData) && rawData.courses && rawData.blocks) {
-      return rawData as SharedData;
+    // ── Legacy: raw SharedData object (very old links, pre-packing) ──────────
+    if (raw && !Array.isArray(raw) && raw.courses && raw.blocks && !raw.v) {
+      return raw as SharedData;
     }
 
-    const payload = rawData as PackedSchedule;
-    if (!Array.isArray(payload) || payload.length !== 3) return null;
+    // ── Legacy: packed array without version (LZString era) ─────────────────
+    if (Array.isArray(raw) && raw.length === 3) {
+      return unpackV1(raw[0], raw[1], raw[2], false);
+    }
 
-    const [packedCourses, packedBlocks, packedConfig] = payload;
+    // ── Versioned payload ────────────────────────────────────────────────────
+    const version: number = raw?.v;
 
-    // Unpack Courses
-    const courses: Course[] = [];
-    const courseIndexToId = new Map<number, string>();
-    const sessionIndexToId = new Map<number, Map<number, string>>();
+    if (version === 1) {
+      const [packedCourses, packedBlocks, packedConfig] = raw.d as [V1Course[], V1Block[], V1Config];
+      return unpackV1(packedCourses, packedBlocks, packedConfig, false);
+    }
 
-    packedCourses.forEach((pc, i) => {
-      const courseId = uid("c_");
-      courseIndexToId.set(i, courseId);
+    if (version === 2) {
+      const [packedCourses, packedBlocks, packedConfig] = raw.d as [V1Course[], V2Block[], V1Config];
+      return unpackV1(packedCourses, packedBlocks, packedConfig, true);
+    }
 
-      const sMap = new Map<number, string>();
-      sessionIndexToId.set(i, sMap);
-
-      const sessions: CourseSession[] = pc[2].map((ps, j) => {
-        const sessionId = uid("s_");
-        sMap.set(j, sessionId);
-        return { id: sessionId, type: ps[0], professor: ps[1], location: ps[2] };
-      });
-
-      courses.push({ id: courseId, name: pc[0], color: pc[1] as any, sessions });
-    });
-
-    // Unpack Blocks
-    const blocks: Block[] = packedBlocks.map((pb) => {
-      const [cIdx, sIdx, day, startMin, endMin] = pb;
-      const courseId = courseIndexToId.get(cIdx) || courses[0]?.id || uid("c_");
-      const sessionId =
-        sessionIndexToId.get(cIdx)?.get(sIdx) ||
-        courses[0]?.sessions?.[0]?.id ||
-        uid("s_");
-      return { id: uid("b_"), courseId, sessionId, day: day as any, startMin, endMin };
-    });
-
-    // Unpack Config
-    const config: ScheduleConfig = { startMin: packedConfig[0], endMin: packedConfig[1] };
-
-    return { courses, blocks, config };
+    console.warn("Unknown share format version:", version);
+    return null;
   } catch (err) {
     console.error("Failed to decode schedule data:", err);
     return null;
   }
+}
+
+// ─── Shared unpacking logic ───────────────────────────────────────────────────
+function unpackV1(
+  packedCourses: V1Course[],
+  packedBlocks: V1Block[] | V2Block[],
+  packedConfig: V1Config,
+  relativeOffsets: boolean
+): SharedData {
+  const courses: Course[] = [];
+  const courseIndexToId = new Map<number, string>();
+  const sessionIndexToId = new Map<number, Map<number, string>>();
+
+  packedCourses.forEach((pc, i) => {
+    const courseId = uid("c_");
+    courseIndexToId.set(i, courseId);
+
+    const sMap = new Map<number, string>();
+    sessionIndexToId.set(i, sMap);
+
+    const sessions: CourseSession[] = pc[2].map((ps, j) => {
+      const sessionId = uid("s_");
+      sMap.set(j, sessionId);
+      return { id: sessionId, type: ps[0], professor: ps[1], location: ps[2] };
+    });
+
+    courses.push({ id: courseId, name: pc[0], color: pc[1] as any, sessions });
+  });
+
+  const [configStartMin, configEndMin] = packedConfig;
+
+  const blocks: Block[] = packedBlocks.map((pb) => {
+    const [cIdx, sIdx, day, field3, field4] = pb;
+    const courseId = courseIndexToId.get(cIdx) || courses[0]?.id || uid("c_");
+    const sessionId = sessionIndexToId.get(cIdx)?.get(sIdx) || courses[0]?.sessions?.[0]?.id || uid("s_");
+
+    // V2: field3=startOffset, field4=duration → reconstruct absolute minutes
+    // V1: field3=startMin,    field4=endMin   → already absolute
+    const startMin = relativeOffsets ? configStartMin + field3 : field3;
+    const endMin   = relativeOffsets ? startMin + field4 : field4;
+
+    return { id: uid("b_"), courseId, sessionId, day: day as any, startMin, endMin };
+  });
+
+  const config: ScheduleConfig = { startMin: configStartMin, endMin: configEndMin };
+  return { courses, blocks, config };
 }
