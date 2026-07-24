@@ -2,7 +2,6 @@ import type { Block as BlockType, Course, Day } from "@/types";
 import { Block } from "./Block";
 
 interface DayColumnProps {
-  day: Day;
   blocks: BlockType[];
   courses: Record<string, Course>;
   minuteHeight: number;
