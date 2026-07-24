@@ -141,7 +141,39 @@ export const useScheduleStore = create<ScheduleStore>()(
         set((s) => ({ blocks: s.blocks.filter((b) => b.id !== id) })),
 
       setConfig: (data) =>
-        set((s) => ({ config: { ...s.config, ...data } })),
+        set((s) => {
+          const newConfig = { ...s.config, ...data };
+          // Validar coherencia
+          if (newConfig.startMin >= newConfig.endMin) return s;
+
+          const newBlocks = s.blocks.map(block => {
+             let { startMin, endMin } = block;
+             const duration = endMin - startMin;
+
+             // 1. Si el bloque empieza antes del nuevo inicio, lo empujamos hacia abajo
+             if (startMin < newConfig.startMin) {
+                startMin = newConfig.startMin;
+                endMin = startMin + duration;
+             }
+             
+             // 2. Si termina después del nuevo fin, lo empujamos hacia arriba
+             if (endMin > newConfig.endMin) {
+                endMin = newConfig.endMin;
+                startMin = endMin - duration;
+                
+                // 3. Si al empujarlo hacia arriba resulta que ahora choca con el inicio
+                // (es decir, el curso es más largo que todo el horario visible), lo truncamos (resize forzado)
+                if (startMin < newConfig.startMin) {
+                   startMin = newConfig.startMin;
+                   endMin = newConfig.endMin;
+                }
+             }
+
+             return { ...block, startMin, endMin };
+          });
+
+          return { config: newConfig, blocks: newBlocks };
+        }),
     }),
     {
       name: "horariofy",
