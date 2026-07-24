@@ -20,6 +20,7 @@ export function ResizeHandle({
   position,
 }: ResizeHandleProps) {
   const resizeBlock = useScheduleStore((s) => s.resizeBlock);
+  const config = useScheduleStore((s) => s.config);
   const [isDragging, setIsDragging] = useState(false);
   const [previewStartMin, setPreviewStartMin] = useState(initialStartMin);
   const [previewEndMin, setPreviewEndMin] = useState(initialEndMin);
@@ -41,9 +42,11 @@ export function ResizeHandle({
       if (position === "bottom") {
         newEndMin = snapToSlot(dragEndMin.current + deltaMins, 15);
         newEndMin = Math.max(newStartMin + 15, newEndMin);
+        newEndMin = Math.min(newEndMin, config.endMin); // Limite inferior global
       } else {
         newStartMin = snapToSlot(dragStartMin.current + deltaMins, 15);
         newStartMin = Math.min(newStartMin, newEndMin - 15);
+        newStartMin = Math.max(newStartMin, config.startMin); // Limite superior global
       }
       
       if (newStartMin !== previewStartMin || newEndMin !== previewEndMin) {
@@ -66,7 +69,17 @@ export function ResizeHandle({
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, [isDragging, minuteHeight, previewStartMin, previewEndMin, blockId, resizeBlock, position]);
+  }, [
+    isDragging,
+    minuteHeight,
+    previewStartMin,
+    previewEndMin,
+    blockId,
+    resizeBlock,
+    position,
+    config.startMin,
+    config.endMin,
+  ]);
 
   return (
     <>

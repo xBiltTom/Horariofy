@@ -77,19 +77,34 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
     const droppedMin = config.startMin + offsetY / MINUTE_HEIGHT;
     
     // Hacemos snap a bloques de 15 minutos
-    const startMin = snapToSlot(droppedMin, 15);
+    let startMin = snapToSlot(droppedMin, 15);
 
     if (active.data.current?.type === "course") {
       const courseId = active.data.current.courseId;
+      // Prevenir que empiece antes de la hora inicio o termine después de la hora fin
+      startMin = Math.max(config.startMin, startMin);
+      let endMin = startMin + 60; // 1 hora por defecto
+      if (endMin > config.endMin) {
+        endMin = config.endMin;
+        startMin = Math.max(config.startMin, endMin - 60); // Empujar hacia arriba si choca abajo
+      }
       addBlock({
         courseId,
         day: day as 0 | 1 | 2 | 3 | 4,
         startMin,
-        endMin: startMin + 60, // 1 hora por defecto
+        endMin,
       });
     } else if (active.data.current?.type === "block") {
       const blockId = active.data.current.blockId;
-      moveBlock(blockId, day as 0 | 1 | 2 | 3 | 4, startMin);
+      const block = blocks.find((b) => b.id === blockId);
+      if (block) {
+        const duration = block.endMin - block.startMin;
+        startMin = Math.max(config.startMin, startMin);
+        if (startMin + duration > config.endMin) {
+          startMin = config.endMin - duration; // Empujar hacia arriba si desborda por abajo
+        }
+        moveBlock(blockId, day as 0 | 1 | 2 | 3 | 4, startMin);
+      }
     }
   }
 
