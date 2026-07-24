@@ -4,6 +4,13 @@ import { useState } from "react";
 import { Download, Menu, Settings2 } from "lucide-react";
 import { useScheduleStore } from "@/stores/useScheduleStore";
 import { ExportDialog } from "@/features/export/ExportDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function Header() {
   const { config, setConfig, mobileSidebarOpen, setMobileSidebarOpen } =
@@ -39,35 +46,49 @@ export function Header() {
         <div className="hidden sm:flex items-center gap-2">
           <Settings2 className="size-3.5 text-muted-foreground/70" />
           <div className="flex items-center rounded-full border border-border/60 bg-muted/20 px-1 py-0.5 shadow-sm">
-            <select
-              value={config.startMin}
-              onChange={(e) => setConfig({ startMin: Number(e.target.value) })}
-              className="h-7 cursor-pointer appearance-none rounded-full bg-transparent px-3 text-xs font-semibold tracking-wide outline-none transition-colors hover:bg-muted focus:bg-muted text-center"
+            <Select
+              value={config.startMin.toString()}
+              onValueChange={(val) => setConfig({ startMin: Number(val) })}
             >
-              {Array.from({ length: 7 }).map((_, i) => {
-                const hour = 6 + i;
-                return (
-                  <option key={hour} value={hour * 60}>
-                    {hour.toString().padStart(2, "0")}:00
-                  </option>
-                );
-              })}
-            </select>
-            <span className="text-muted-foreground/50 text-[10px] font-bold">—</span>
-            <select
-              value={config.endMin}
-              onChange={(e) => setConfig({ endMin: Number(e.target.value) })}
-              className="h-7 cursor-pointer appearance-none rounded-full bg-transparent px-3 text-xs font-semibold tracking-wide outline-none transition-colors hover:bg-muted focus:bg-muted text-center"
+              <SelectTrigger className="h-7 w-auto min-w-[70px] border-0 bg-transparent px-2.5 py-0 text-xs font-semibold tracking-wide shadow-none hover:bg-muted focus:ring-0 focus:ring-offset-0 transition-colors rounded-full">
+                <SelectValue>
+                  {Math.floor(config.startMin / 60).toString().padStart(2, "0")}:00
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 7 }).map((_, i) => {
+                  const hour = 6 + i;
+                  return (
+                    <SelectItem key={hour} value={(hour * 60).toString()} className="text-xs font-medium">
+                      {hour.toString().padStart(2, "0")}:00
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+
+            <span className="text-muted-foreground/50 text-[10px] font-bold px-0.5">—</span>
+
+            <Select
+              value={config.endMin.toString()}
+              onValueChange={(val) => setConfig({ endMin: Number(val) })}
             >
-              {Array.from({ length: 9 }).map((_, i) => {
-                const hour = 16 + i;
-                return (
-                  <option key={hour} value={hour * 60}>
-                    {hour.toString().padStart(2, "0")}:00
-                  </option>
-                );
-              })}
-            </select>
+              <SelectTrigger className="h-7 w-auto min-w-[70px] border-0 bg-transparent px-2.5 py-0 text-xs font-semibold tracking-wide shadow-none hover:bg-muted focus:ring-0 focus:ring-offset-0 transition-colors rounded-full">
+                <SelectValue>
+                  {Math.floor(config.endMin / 60).toString().padStart(2, "0")}:00
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 9 }).map((_, i) => {
+                  const hour = 16 + i;
+                  return (
+                    <SelectItem key={hour} value={(hour * 60).toString()} className="text-xs font-medium">
+                      {hour.toString().padStart(2, "0")}:00
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
