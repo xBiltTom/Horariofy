@@ -80,37 +80,45 @@ export function Block({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={
-            <button type="button" className="pl-1.5 flex flex-col h-full relative z-10 w-full text-left">
+            <button type="button" className="pl-1.5 flex flex-col h-full relative z-10 w-full text-left overflow-hidden pb-1">
               <span 
-                className="text-[11px] font-bold leading-tight truncate uppercase tracking-wider opacity-80" 
+                className="text-xs font-bold leading-tight uppercase tracking-wider opacity-80 line-clamp-2" 
                 style={{ color: style.text }}
               >
                 {course.name}
               </span>
               <span 
-                className="text-xs font-semibold leading-tight truncate mt-0.5" 
+                className="text-sm font-black leading-tight mt-0.5 line-clamp-1" 
                 style={{ color: style.text }}
               >
                 {session.type}
               </span>
               
               {!isCompact && (
-                <>
-                  <span 
-                    className="text-[10px] opacity-80 mt-0.5 truncate font-medium" 
-                    style={{ color: style.text }}
-                  >
-                    {minToTime(block.startMin)} - {minToTime(block.endMin)}
-                  </span>
+                <div className="flex flex-col gap-0.5 mt-1.5 flex-1 w-full min-h-0">
+                  {session.professor && (
+                    <span 
+                      className="text-[11px] font-medium leading-tight opacity-90 line-clamp-2" 
+                      style={{ color: style.text }}
+                    >
+                      {session.professor}
+                    </span>
+                  )}
                   {session.location && (
                     <span 
-                      className="text-[10px] opacity-70 mt-auto truncate" 
+                      className="text-[11px] font-medium leading-tight opacity-90 line-clamp-1" 
                       style={{ color: style.text }}
                     >
                       {session.location}
                     </span>
                   )}
-                </>
+                  <span 
+                    className="text-[10px] font-bold opacity-70 mt-auto pt-1" 
+                    style={{ color: style.text }}
+                  >
+                    {minToTime(block.startMin)} - {minToTime(block.endMin)}
+                  </span>
+                </div>
               )}
             </button>
           }
