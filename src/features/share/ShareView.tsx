@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, notFound } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Download } from "lucide-react";
@@ -31,17 +31,7 @@ export function ShareView() {
   }, [encoded]);
 
   if (error) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-4">
-        <h1 className="text-2xl font-bold font-display">Horario no encontrado</h1>
-        <p className="text-muted-foreground text-sm max-w-md">
-          El enlace parece estar roto, incompleto o ya no es válido. Asegúrate de haber copiado la URL completa.
-        </p>
-        <Link href="/" className="mt-4 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-slate-50 transition-all hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
-          Crear mi propio horario
-        </Link>
-      </div>
-    );
+    return notFound();
   }
 
   if (!data) return null; // Wait for decode
