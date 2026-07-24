@@ -68,16 +68,16 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] w-full max-w-5xl flex-col gap-0 p-0 sm:max-w-5xl">
-        <DialogHeader className="border-b px-5 py-4">
+      <DialogContent className="flex h-[100dvh] md:h-auto max-h-[100dvh] md:max-h-[90vh] w-full max-w-5xl flex-col gap-0 p-0 sm:max-w-5xl rounded-none md:rounded-lg">
+        <DialogHeader className="border-b px-5 py-4 shrink-0">
           <DialogTitle className="font-display text-lg">
             Exportar horario
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
           {/* Panel de opciones */}
-          <div className="flex w-full md:w-72 shrink-0 flex-col gap-5 overflow-y-auto border-r p-5">
+          <div className="flex w-full md:w-72 flex-1 md:flex-none md:shrink-0 flex-col gap-5 overflow-y-auto border-t md:border-t-0 md:border-r p-5 pb-8 md:pb-5">
             <Section title="Título">
               <input
                 value={options.title}
@@ -197,22 +197,23 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
           {/* Área de preview */}
           <div
             ref={containerRef}
-            className="flex min-w-0 flex-1 items-start justify-center overflow-auto bg-muted/30 p-6"
+            className="flex min-w-0 shrink-0 h-[35vh] md:h-auto md:flex-1 items-start justify-center overflow-auto bg-muted/30 p-4 md:p-6"
           >
             <div
               style={{
                 width: PREVIEW_WIDTH * scale,
-                height: 600 * scale,
+                height: ((config.endMin - config.startMin) * (80 / 60) + 44 + 16 + (options.title.trim() ? 52 : 0)) * scale,
               }}
-              className="shrink-0"
+              className="shrink-0 relative"
             >
               <div
                 style={{
                   transform: `scale(${scale})`,
                   transformOrigin: "top left",
                   width: PREVIEW_WIDTH,
+                  height: ((config.endMin - config.startMin) * (80 / 60) + 44 + 16 + (options.title.trim() ? 52 : 0)),
                 }}
-                className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5"
+                className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5 absolute top-0 left-0"
               >
                 <SchedulePreview
                   ref={innerRef}
@@ -226,7 +227,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
           </div>
         </div>
 
-        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 border-t p-4 bg-background rounded-b-lg">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 border-t p-4 bg-background rounded-b-none md:rounded-b-lg shrink-0">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
