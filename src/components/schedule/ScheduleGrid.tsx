@@ -69,6 +69,16 @@ export function ScheduleGrid() {
                 );
               })}
             </div>
+            
+            {blocks.length === 0 && (
+              <div className="absolute inset-0 left-16 pointer-events-none flex items-center justify-center">
+                <div className="text-center opacity-30 select-none">
+                  <span className="block text-4xl mb-2">📅</span>
+                  <p className="text-xl font-medium tracking-tight">Tu horario está vacío</p>
+                  <p className="text-sm">Arrastra un curso desde la barra lateral</p>
+                </div>
+              </div>
+            )}
 
             <TimeColumn
               startMin={config.startMin}

@@ -35,6 +35,9 @@ interface ScheduleStore {
   removeBlock: (id: string) => void;
 
   setConfig: (data: Partial<typeof DEFAULT_CONFIG>) => void;
+  
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: (open: boolean) => void;
 }
 
 export const useScheduleStore = create<ScheduleStore>()(
@@ -51,6 +54,9 @@ export const useScheduleStore = create<ScheduleStore>()(
         { id: "b_seed4", courseId: "c_seed2", day: 3, startMin: 14 * 60 + 30, endMin: 16 * 60 },
       ],
       config: DEFAULT_CONFIG,
+      mobileSidebarOpen: false,
+
+      setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
 
       addCourse: ({ name, professor = "", location = "", color }) => {
         const id = uid("c_");

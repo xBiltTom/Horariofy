@@ -1,15 +1,22 @@
 "use client";
 
-import { CalendarDays, Download } from "lucide-react";
+import { CalendarDays, Download, Menu } from "lucide-react";
 import { toPng } from "html-to-image";
 import { useScheduleStore } from "@/stores/useScheduleStore";
 
 export function Header() {
-  const { config, setConfig } = useScheduleStore();
+  const { config, setConfig, mobileSidebarOpen, setMobileSidebarOpen } = useScheduleStore();
 
   return (
     <header className="bg-background/80 sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b px-4 backdrop-blur-sm">
       <div className="flex items-center gap-2.5">
+        <button 
+          type="button" 
+          className="md:hidden p-1.5 -ml-1.5 hover:bg-black/5 rounded-md"
+          onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        >
+          <Menu className="size-5" />
+        </button>
         <div className="bg-accent text-accent-foreground flex size-7 items-center justify-center rounded-md shadow-sm">
           <CalendarDays className="size-4" />
         </div>
