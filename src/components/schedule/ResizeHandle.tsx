@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { snapToSlot, minToTime, formatDuration } from "@/utils/time";
 import { useScheduleStore } from "@/stores/useScheduleStore";
 
@@ -24,6 +25,7 @@ export function ResizeHandle({
   const [isDragging, setIsDragging] = useState(false);
   const [previewStartMin, setPreviewStartMin] = useState(initialStartMin);
   const [previewEndMin, setPreviewEndMin] = useState(initialEndMin);
+  const [pointerPos, setPointerPos] = useState({ x: 0, y: 0 });
   
   const startY = useRef(0);
   const dragStartMin = useRef(initialStartMin);
@@ -33,6 +35,8 @@ export function ResizeHandle({
     if (!isDragging) return;
 
     function handlePointerMove(e: PointerEvent) {
+      setPointerPos({ x: e.clientX, y: e.clientY });
+      
       const deltaY = e.clientY - startY.current;
       const deltaMins = deltaY / minuteHeight;
       
@@ -93,6 +97,7 @@ export function ResizeHandle({
           startY.current = e.clientY;
           dragStartMin.current = initialStartMin;
           dragEndMin.current = initialEndMin;
+          setPointerPos({ x: e.clientX, y: e.clientY });
           setPreviewStartMin(initialStartMin);
           setPreviewEndMin(initialEndMin);
           setIsDragging(true);
@@ -101,13 +106,12 @@ export function ResizeHandle({
         <div className="w-8 h-1 rounded-full bg-foreground/20 hover:bg-foreground/40 transition-colors" />
       </div>
 
-      {isDragging && (
+      {isDragging && typeof document !== "undefined" && createPortal(
         <div 
-          className="fixed z-50 pointer-events-none rounded-md bg-foreground text-background px-2.5 py-1 text-xs font-medium shadow-xl whitespace-nowrap animate-in fade-in zoom-in duration-150"
+          className="fixed z-[9999] pointer-events-none rounded-md bg-foreground text-background px-2.5 py-1 text-xs font-medium shadow-xl whitespace-nowrap animate-in fade-in zoom-in duration-75"
           style={{
-            bottom: position === "bottom" ? '32px' : 'auto',
-            top: position === "top" ? '32px' : 'auto',
-            left: '50%',
+            top: pointerPos.y + (position === "top" ? -40 : 20),
+            left: pointerPos.x,
             transform: 'translateX(-50%)'
           }}
         >
@@ -115,7 +119,8 @@ export function ResizeHandle({
           <span className="opacity-70 ml-1.5 font-normal">
             ({formatDuration(previewEndMin - previewStartMin)})
           </span>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
