@@ -82,23 +82,23 @@ export function Block({
           render={
             <button type="button" className="pl-1.5 flex flex-col h-full relative z-10 w-full text-left overflow-hidden pb-1">
               <span 
-                className="text-xs font-bold leading-tight uppercase tracking-wider opacity-80 line-clamp-2" 
+                className="text-xs font-bold leading-tight uppercase tracking-wider opacity-80 break-words" 
                 style={{ color: style.text }}
               >
                 {course.name}
               </span>
               <span 
-                className="text-sm font-black leading-tight mt-0.5 line-clamp-1" 
+                className="text-sm font-black leading-tight mt-0.5 break-words" 
                 style={{ color: style.text }}
               >
                 {session.type}
               </span>
               
               {!isCompact && (
-                <div className="flex flex-col gap-0.5 mt-1.5 flex-1 w-full min-h-0">
+                <div className="flex flex-col gap-0.5 mt-1.5 flex-1 w-full min-h-0 overflow-hidden">
                   {session.professor && (
                     <span 
-                      className="text-[11px] font-medium leading-tight opacity-90 line-clamp-2" 
+                      className="text-[11px] font-medium leading-tight opacity-90 break-words" 
                       style={{ color: style.text }}
                     >
                       {session.professor}
@@ -106,7 +106,7 @@ export function Block({
                   )}
                   {session.location && (
                     <span 
-                      className="text-[11px] font-medium leading-tight opacity-90 line-clamp-1" 
+                      className="text-[11px] font-medium leading-tight opacity-90 break-words" 
                       style={{ color: style.text }}
                     >
                       {session.location}

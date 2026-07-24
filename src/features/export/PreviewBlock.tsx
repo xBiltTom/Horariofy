@@ -71,7 +71,7 @@ export function PreviewBlock({
       <div className="flex h-full flex-col pl-1.5">
         {options.showCourseName && (
           <span
-            className="font-bold leading-tight uppercase tracking-wider line-clamp-2"
+            className="font-bold leading-tight uppercase tracking-wider break-words"
             style={{ color: fg, fontSize: `${options.fontSize * 0.72}px` }}
           >
             {course.name}
@@ -79,7 +79,7 @@ export function PreviewBlock({
         )}
         {options.showSessionType && session?.type && (
           <span
-            className="font-black leading-tight line-clamp-1"
+            className="font-black leading-tight break-words"
             style={{ color: fg, fontSize: `${options.fontSize}px` }}
           >
             {session.type}
@@ -87,10 +87,10 @@ export function PreviewBlock({
         )}
 
         {!isCompact && (
-          <div className="flex flex-col gap-0.5 mt-1 flex-1 min-h-0">
+          <div className="flex flex-col gap-0.5 mt-1 flex-1 min-h-0 overflow-hidden">
             {options.showProfessor && session?.professor && (
               <span
-                className="font-medium leading-tight opacity-90 line-clamp-2"
+                className="font-medium leading-tight opacity-90 break-words"
                 style={{ color: fg, fontSize: `${options.fontSize * 0.8}px` }}
               >
                 {session.professor}
@@ -98,7 +98,7 @@ export function PreviewBlock({
             )}
             {options.showLocation && session?.location && (
               <span
-                className="font-medium leading-tight opacity-90 line-clamp-1"
+                className="font-medium leading-tight opacity-90 break-words"
                 style={{ color: fg, fontSize: `${options.fontSize * 0.8}px` }}
               >
                 {session.location}
