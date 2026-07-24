@@ -19,7 +19,8 @@ const MINUTE_HEIGHT = 80 / 60; // 80px por hora
 
 export function ScheduleDndProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeType, setActiveType] = useState<"course" | "block" | null>(null);
+  const [activeType, setActiveType] = useState<"course" | "sortable-course" | "block" | null>(null);
+  const [activeData, setActiveData] = useState<any>(null);
 
   const { courses, blocks, config, addBlock, moveBlock } = useScheduleStore();
 
@@ -34,23 +35,25 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
   function handleDragStart(event: DragStartEvent) {
     const { active } = event;
     setActiveId(active.id as string);
-    setActiveType(active.data.current?.type as "course" | "block");
+    setActiveType(active.data.current?.type as "course" | "sortable-course" | "block");
+    setActiveData(active.data.current);
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveId(null);
     setActiveType(null);
+    setActiveData(null);
 
     if (!over) return;
 
     // 1. Reordenar cursos en la barra lateral
     if (
-      active.data.current?.type === "course" &&
-      over.data.current?.type === "course"
+      active.data.current?.type === "sortable-course" &&
+      over.data.current?.type === "sortable-course"
     ) {
-      const activeCourseId = (active.id as string).replace("new-course-", "");
-      const overCourseId = (over.id as string).replace("new-course-", "");
+      const activeCourseId = (active.id as string).replace("course-", "");
+      const overCourseId = (over.id as string).replace("course-", "");
       useScheduleStore.getState().reorderCourses(activeCourseId, overCourseId);
       return;
     }
@@ -81,6 +84,7 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
 
     if (active.data.current?.type === "course") {
       const courseId = active.data.current.courseId;
+      const sessionId = active.data.current.sessionId;
       // Prevenir que empiece antes de la hora inicio o termine después de la hora fin
       startMin = Math.max(config.startMin, startMin);
       let endMin = startMin + 60; // 1 hora por defecto
@@ -90,6 +94,7 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
       }
       addBlock({
         courseId,
+        sessionId,
         day: day as 0 | 1 | 2 | 3 | 4,
         startMin,
         endMin,
@@ -111,8 +116,8 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
   const renderOverlay = () => {
     if (!activeId || !activeType) return null;
 
-    if (activeType === "course") {
-      const courseId = activeId.replace("new-course-", "");
+    if (activeType === "sortable-course") {
+      const courseId = activeData?.courseId;
       const course = courses.find((c) => c.id === courseId);
       if (!course) return null;
       return (
@@ -121,9 +126,32 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
         </div>
       );
     }
+    
+    if (activeType === "course") {
+      // Estamos arrastrando una píldora de sesión
+      const courseId = activeData?.courseId;
+      const sessionId = activeData?.sessionId;
+      const course = courses.find((c) => c.id === courseId);
+      const session = course?.sessions?.find(s => s.id === sessionId);
+      if (!course || !session) return null;
+      
+      const { COURSE_COLOR_STYLES } = require("@/utils/colors");
+      const style = COURSE_COLOR_STYLES[course.color];
+      
+      return (
+        <div 
+          className="w-48 opacity-90 rotate-3 scale-105 shadow-xl cursor-grabbing flex flex-col gap-0.5 rounded border p-2 text-xs"
+          style={{ backgroundColor: style.soft, borderColor: style.border, color: style.text }}
+        >
+          <span className="font-semibold">{session.type}</span>
+          {session.professor && <span className="opacity-75 truncate">{session.professor}</span>}
+          {session.location && <span className="opacity-75 truncate">{session.location}</span>}
+        </div>
+      );
+    }
 
     if (activeType === "block") {
-      const blockId = activeId.replace("block-", "");
+      const blockId = activeData?.blockId;
       const block = blocks.find((b) => b.id === blockId);
       if (!block) return null;
       const course = courses.find((c) => c.id === block.courseId);
@@ -133,7 +161,6 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
           className="w-[120px] opacity-90 rotate-2 scale-105 shadow-2xl cursor-grabbing relative" 
           style={{ height: (block.endMin - block.startMin) * MINUTE_HEIGHT }}
         >
-          {/* Usamos gridStartMin = startMin para que el top interno sea 0 y quede pegado al tope del overlay */}
           <Block
             block={block}
             course={course}

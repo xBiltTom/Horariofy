@@ -51,6 +51,8 @@ export function Block({
   // Apply a small gap between overlapping blocks (except if maxCol is 1)
   const widthStr = maxCol > 1 ? `calc(${widthPercent}% - 4px)` : 'auto';
 
+  const session = course.sessions?.find(s => s.id === block.sessionId) || { type: "Clase", professor: "", location: "" };
+
   return (
     <div
       ref={setNodeRef}
@@ -80,26 +82,32 @@ export function Block({
           render={
             <button type="button" className="pl-1.5 flex flex-col h-full relative z-10 w-full text-left">
               <span 
-                className="text-xs font-semibold leading-tight truncate" 
+                className="text-[11px] font-bold leading-tight truncate uppercase tracking-wider opacity-80" 
                 style={{ color: style.text }}
               >
                 {course.name}
+              </span>
+              <span 
+                className="text-xs font-semibold leading-tight truncate mt-0.5" 
+                style={{ color: style.text }}
+              >
+                {session.type}
               </span>
               
               {!isCompact && (
                 <>
                   <span 
-                    className="text-[10px] opacity-80 mt-0.5 truncate" 
+                    className="text-[10px] opacity-80 mt-0.5 truncate font-medium" 
                     style={{ color: style.text }}
                   >
                     {minToTime(block.startMin)} - {minToTime(block.endMin)}
                   </span>
-                  {course.location && (
+                  {session.location && (
                     <span 
                       className="text-[10px] opacity-70 mt-auto truncate" 
                       style={{ color: style.text }}
                     >
-                      {course.location}
+                      {session.location}
                     </span>
                   )}
                 </>
@@ -107,10 +115,13 @@ export function Block({
             </button>
           }
         />
-        <PopoverContent className="w-72 p-0" align="start">
+        <PopoverContent className="w-80 p-0" align="start">
           <div className="p-3 border-b">
             <div className="flex items-center justify-between">
-              <h4 className="font-semibold">{course.name}</h4>
+              <div>
+                <h4 className="font-semibold">{course.name}</h4>
+                <p className="text-xs text-muted-foreground">{session.type}</p>
+              </div>
               <button 
                 onClick={() => removeBlock(block.id)}
                 className="text-destructive hover:bg-destructive/10 p-1.5 rounded-md transition-colors"
@@ -119,16 +130,15 @@ export function Block({
                 <Trash2 className="size-4" />
               </button>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-2">
               {DAY_LABELS[block.day]} de {minToTime(block.startMin)} a {minToTime(block.endMin)}
             </p>
           </div>
           <div className="p-3">
             <CourseForm
               initialName={course.name}
-              initialProfessor={course.professor}
-              initialLocation={course.location}
               initialColor={course.color}
+              initialSessions={course.sessions}
               submitLabel="Guardar cambios"
               onCancel={() => setOpen(false)}
               onSubmit={(data) => {

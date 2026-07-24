@@ -23,7 +23,7 @@ export function CourseList() {
       ) : (
         <div className="flex flex-col gap-1.5">
           <SortableContext 
-            items={courses.map(c => `new-course-${c.id}`)} 
+            items={courses.map(c => `course-${c.id}`)} 
             strategy={verticalListSortingStrategy}
           >
             {courses.map((course) => (

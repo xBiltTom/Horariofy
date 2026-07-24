@@ -31,17 +31,24 @@ export const COURSE_COLORS: CourseColor[] = [
   "orange",
 ];
 
+export interface CourseSession {
+  id: string;
+  type: string; // e.g. "Teoría", "Práctica", "Laboratorio", etc.
+  professor: string;
+  location: string;
+}
+
 export interface Course {
   id: string;
   name: string;
-  professor: string;
-  location: string;
   color: CourseColor;
+  sessions: CourseSession[];
 }
 
 export interface Block {
   id: string;
   courseId: string;
+  sessionId: string;
   day: Day;
   startMin: number;
   endMin: number;

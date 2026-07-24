@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Block, Course, Day, CourseColor } from "@/types";
+import type { Block, Course, Day, CourseColor, CourseSession } from "@/types";
 import { uid } from "@/utils/time";
 import { pickAutoColor } from "@/utils/colors";
 
@@ -16,9 +16,8 @@ interface ScheduleStore {
 
   addCourse: (data: {
     name: string;
-    professor?: string;
-    location?: string;
     color?: CourseColor;
+    sessions?: CourseSession[];
   }) => string;
   updateCourse: (id: string, data: Partial<Omit<Course, "id">>) => void;
   removeCourse: (id: string) => void;
@@ -26,6 +25,7 @@ interface ScheduleStore {
 
   addBlock: (data: {
     courseId: string;
+    sessionId: string;
     day: Day;
     startMin: number;
     endMin: number;
@@ -45,30 +45,51 @@ export const useScheduleStore = create<ScheduleStore>()(
   persist(
     (set, get) => ({
       courses: [
-        { id: "c_seed1", name: "Diseño de Interfaces", professor: "Alan Turing", location: "Lab 3", color: "rose" },
-        { id: "c_seed2", name: "Estructuras de Datos", professor: "Grace Hopper", location: "Aula 101", color: "sky" },
+        { 
+          id: "c_seed1", 
+          name: "Diseño de Interfaces", 
+          color: "rose",
+          sessions: [{ id: "s_seed1", type: "Teoría", professor: "Alan Turing", location: "Lab 3" }]
+        },
+        { 
+          id: "c_seed2", 
+          name: "Estructuras de Datos", 
+          color: "sky",
+          sessions: [{ id: "s_seed2", type: "Práctica", professor: "Grace Hopper", location: "Aula 101" }]
+        },
       ],
       blocks: [
-        { id: "b_seed1", courseId: "c_seed1", day: 0, startMin: 9 * 60, endMin: 11 * 60 },
-        { id: "b_seed2", courseId: "c_seed1", day: 2, startMin: 9 * 60, endMin: 11 * 60 },
-        { id: "b_seed3", courseId: "c_seed2", day: 1, startMin: 14 * 60 + 30, endMin: 16 * 60 },
-        { id: "b_seed4", courseId: "c_seed2", day: 3, startMin: 14 * 60 + 30, endMin: 16 * 60 },
+        { id: "b_seed1", courseId: "c_seed1", sessionId: "s_seed1", day: 0, startMin: 9 * 60, endMin: 11 * 60 },
+        { id: "b_seed2", courseId: "c_seed1", sessionId: "s_seed1", day: 2, startMin: 9 * 60, endMin: 11 * 60 },
+        { id: "b_seed3", courseId: "c_seed2", sessionId: "s_seed2", day: 1, startMin: 14 * 60 + 30, endMin: 16 * 60 },
+        { id: "b_seed4", courseId: "c_seed2", sessionId: "s_seed2", day: 3, startMin: 14 * 60 + 30, endMin: 16 * 60 },
       ],
       config: DEFAULT_CONFIG,
       mobileSidebarOpen: false,
 
       setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
 
-      addCourse: ({ name, professor = "", location = "", color }) => {
+      addCourse: ({ name, color, sessions = [] }) => {
         const id = uid("c_");
         const usedColors = get().courses.map((c) => c.color);
         const finalColor = color ?? pickAutoColor(usedColors);
+        
+        const defaultSession: CourseSession = {
+          id: uid("s_"),
+          type: "Clase",
+          professor: "",
+          location: "",
+        };
+
+        const newSessions = sessions.length > 0 
+          ? sessions.map(s => ({ ...s, id: uid("s_") })) 
+          : [defaultSession];
+
         const course: Course = {
           id,
           name: name.trim() || "Sin nombre",
-          professor: professor.trim(),
-          location: location.trim(),
           color: finalColor,
+          sessions: newSessions,
         };
         set((s) => ({ courses: [...s.courses, course] }));
         return id;
@@ -82,8 +103,6 @@ export const useScheduleStore = create<ScheduleStore>()(
                   ...c,
                   ...data,
                   name: data.name !== undefined ? data.name.trim() || "Sin nombre" : c.name,
-                  professor: data.professor !== undefined ? data.professor.trim() : c.professor,
-                  location: data.location !== undefined ? data.location.trim() : c.location,
                 }
               : c,
           ),
@@ -106,9 +125,9 @@ export const useScheduleStore = create<ScheduleStore>()(
           return { courses: newCourses };
         }),
 
-      addBlock: ({ courseId, day, startMin, endMin }) => {
+      addBlock: ({ courseId, sessionId, day, startMin, endMin }) => {
         const id = uid("b_");
-        const block: Block = { id, courseId, day, startMin, endMin };
+        const block: Block = { id, courseId, sessionId, day, startMin, endMin };
         set((s) => ({ blocks: [...s.blocks, block] }));
         return id;
       },
@@ -162,7 +181,6 @@ export const useScheduleStore = create<ScheduleStore>()(
                 startMin = endMin - duration;
                 
                 // 3. Si al empujarlo hacia arriba resulta que ahora choca con el inicio
-                // (es decir, el curso es más largo que todo el horario visible), lo truncamos (resize forzado)
                 if (startMin < newConfig.startMin) {
                    startMin = newConfig.startMin;
                    endMin = newConfig.endMin;
@@ -177,6 +195,43 @@ export const useScheduleStore = create<ScheduleStore>()(
     }),
     {
       name: "horariofy",
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        if (version === 0) {
+          // Migración de v0 a v1 (Soporte para múltiples sesiones)
+          const oldCourses = persistedState.courses || [];
+          let oldBlocks = persistedState.blocks || [];
+          
+          persistedState.courses = oldCourses.map((c: any) => {
+            if (c.sessions) return c; // Ya migrado
+            
+            const sessionId = uid("s_");
+            const newSession = {
+              id: sessionId,
+              type: "Clase",
+              professor: c.professor || "",
+              location: c.location || "",
+            };
+            
+            // Asignar esta nueva sesión a todos los bloques de este curso
+            oldBlocks = oldBlocks.map((b: any) => {
+              if (b.courseId === c.id && !b.sessionId) {
+                return { ...b, sessionId };
+              }
+              return b;
+            });
+            
+            const { professor, location, ...rest } = c;
+            return {
+              ...rest,
+              sessions: [newSession],
+            };
+          });
+          
+          persistedState.blocks = oldBlocks;
+        }
+        return persistedState;
+      },
       partialize: (s) => ({
         courses: s.courses,
         blocks: s.blocks,
