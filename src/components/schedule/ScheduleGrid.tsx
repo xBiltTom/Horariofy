@@ -37,11 +37,11 @@ export function ScheduleGrid() {
     <div className="flex-1 overflow-auto bg-background">
       <div id="schedule-grid-export" className="min-w-[700px] flex flex-col min-h-full relative bg-background">
         {/* Sticky Day Headers */}
-        <div className="flex pl-16 border-b border-border/50 bg-background/95 backdrop-blur-sm z-20 sticky top-0 shadow-sm">
+        <div className="flex pl-16 border-b border-border/50 bg-background/95 backdrop-blur-sm z-20 sticky top-0 shadow-sm h-14 md:h-11 items-center">
           {DAYS.map((day) => (
             <div
               key={day}
-              className="flex-1 py-3 text-center border-r border-border/50 last:border-r-0"
+              className="flex-1 text-center border-r border-border/50 last:border-r-0"
             >
               <span className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {DAY_LABELS[day]}
