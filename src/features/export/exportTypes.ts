@@ -21,10 +21,11 @@ export interface ExportOptions {
   showLocation: boolean;
   showTime: boolean;
   gridLineIntensity: number;
+  labelContrast: number;
 }
 
 export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
-  title: "Mi horario",
+  title: "",
   theme: {
     id: "papel",
     name: "Papel",
@@ -44,4 +45,5 @@ export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
   showLocation: true,
   showTime: true,
   gridLineIntensity: 50,
+  labelContrast: 0,
 };

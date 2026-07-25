@@ -60,7 +60,7 @@ export default function NotFound() {
           className="group flex h-11 items-center gap-2 rounded-full bg-slate-900 px-6 text-sm font-semibold text-slate-50 transition-all hover:bg-slate-800 active:scale-95 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 shadow-sm hover:shadow-md"
         >
           <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
-          <span>Volver al horario</span>
+          <span>Ir al inicio</span>
         </Link>
       </div>
     </div>

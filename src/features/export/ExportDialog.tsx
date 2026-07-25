@@ -179,6 +179,24 @@ export function ExportDialog({ open, onOpenChange, sharedData }: ExportDialogPro
               </div>
             </Section>
 
+            <Section title="Constraste de horas y días">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range" 
+                    min={0}
+                    max={100}
+                    className="flex-1 accent-slate-600 cursor-pointer dark:accent-slate-400"
+                    value={options.labelContrast}
+                    onChange={ (e) => 
+                      update("labelContrast",Number(e.target.value))
+                    }
+                  />
+                  <span className="text-muted-foreground w-12 text-right text-xs tabular-nums">
+                    {options.labelContrast}%
+                  </span>
+                </div>
+            </Section>
+
             <Section title="Mostrar en tarjetas">
               <div className="flex flex-col gap-2">
                 <Toggle

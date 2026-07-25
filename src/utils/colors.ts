@@ -1,5 +1,6 @@
 import type { CourseColor } from "@/types";
 import { COURSE_COLORS } from "@/types";
+import { parse } from "path";
 
 /**
  * Paleta curada para bloques de cursos.
@@ -238,6 +239,41 @@ export const COURSE_COLOR_STYLES: Record<
     dot: "#10b981",
   },
 };
+
+
+export function mixHexColors(hexA: string, hexB: string, t: number): string {
+  const clampedT = Math.min(1, Math.max(0, t));
+  const a = parseHexColor(hexA);
+  const b = parseHexColor(hexB);
+  if (!a || !b) return hexA;
+  
+  const r = Math.round(a.r + (b.r - a.r)*clampedT);
+  const g = Math.round(a.g + (b.g - a.g)*clampedT);
+  const b1 = Math.round(a.b + (b.b - a.b)*clampedT); 
+  return `#${toHex(r)}${toHex(g)}${toHex(b1)}`;
+}
+
+function parseHexColor(hex: string): {r: number, g: number, b: number} | null{
+  const normalized = hex.replace("#", "");
+  const full = 
+    normalized.length === 3
+      ? normalized
+          .split("")
+          .map((c)=>c+c)
+          .join("")
+      : normalized
+
+  if (full.length !== 6) return null;
+  const r = parseInt(full.slice(0,2), 16);
+  const g = parseInt(full.slice(2,4), 16);
+  const b = parseInt(full.slice(4,6), 16);
+  if ([r,g,b].some((n)=>Number.isNaN(n))) return null;
+  return {r,g,b};
+}
+
+function toHex(n: number): string{
+  return Math.min(255, Math.max(0, n)).toString(16).padStart(2, "0");
+}
 
 /**
  * Asigna el color menos usado entre los cursos existentes.

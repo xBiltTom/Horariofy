@@ -2,6 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { DAYS, DAY_LABELS, type Block, type Course } from "@/types";
 import { hourMarks, minToTime } from "@/utils/time";
 import { layoutDay } from "@/utils/conflicts";
+import { mixHexColors } from "@/utils/colors";
 import type { ExportOptions } from "./exportTypes";
 import { PreviewBlock } from "./PreviewBlock";
 
@@ -43,6 +44,14 @@ export const SchedulePreview = forwardRef<HTMLDivElement, SchedulePreviewProps>(
     const lineOpacity = options.gridLineIntensity / 100;
     const lineColor = theme.foreground;
 
+    const contrast = Math.min(100, Math.max(0, options.labelContrast))/100;
+    const dayLabelColor = mixHexColors(theme.headerText, theme.foreground, contrast);
+    const dayLabelWeight = Math.round(600 + contrast * 200);
+    const cornerLabelOpacity = 0.5 + contrast * 0.5;
+    const hourLabelColor = mixHexColors(theme.muted, theme.foreground, contrast);
+    const hourLabelOpacity = 0.7 + contrast * 0.3;
+    const hourLabelWeight = Math.round(500 + contrast * 200);
+
     return (
       <div
         ref={ref}
@@ -55,6 +64,7 @@ export const SchedulePreview = forwardRef<HTMLDivElement, SchedulePreviewProps>(
       >
         {options.title.trim() && (
           <div
+            className="text-center"
             style={{
               padding: "20px 24px 12px",
               fontSize: "24px",
@@ -84,12 +94,12 @@ export const SchedulePreview = forwardRef<HTMLDivElement, SchedulePreviewProps>(
               justifyContent: "center",
               borderRight: `1px solid ${theme.border}`,
               height: "44px",
-              fontSize: "10px",
+              fontSize: "16px",
               fontWeight: 700,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               color: theme.headerText,
-              opacity: 0.5,
+              opacity: cornerLabelOpacity,
             }}
           >
             Hora
@@ -107,11 +117,11 @@ export const SchedulePreview = forwardRef<HTMLDivElement, SchedulePreviewProps>(
                     ? `1px solid ${theme.border}`
                     : "none",
                 height: "44px",
-                fontSize: "13px",
-                fontWeight: 600,
+                fontSize: "24px",
+                fontWeight: dayLabelWeight,
                 letterSpacing: "0.05em",
                 textTransform: "uppercase",
-                color: theme.headerText,
+                color: dayLabelColor,
               }}
             >
               {DAY_LABELS[day]}
@@ -146,11 +156,11 @@ export const SchedulePreview = forwardRef<HTMLDivElement, SchedulePreviewProps>(
                     transform: "translateY(-50%)",
                     display: "flex",
                     justifyContent: "flex-end",
-                    fontSize: "11px",
-                    fontWeight: 500,
+                    fontSize: "14px",
+                    fontWeight: hourLabelWeight,
                     letterSpacing: "0.05em",
-                    color: theme.muted,
-                    opacity: 0.7,
+                    color: hourLabelColor,
+                    opacity: hourLabelOpacity,
                   }}
                 >
                   {minToTime(min)}
