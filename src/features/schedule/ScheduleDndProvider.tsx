@@ -195,6 +195,7 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
 
   return (
     <DndContext
+      id="dnd-schedule"
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragMove={handleDragMove}
