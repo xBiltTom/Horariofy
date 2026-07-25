@@ -6,7 +6,8 @@ import {
   DragOverlay,
   useSensor,
   useSensors,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
@@ -25,9 +26,15 @@ export function ScheduleDndProvider({ children }: { children: React.ReactNode })
   const { courses, blocks, config, addBlock, moveBlock } = useScheduleStore();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 5, // Evita drags accidentales al hacer clic (ej. al abrir popovers)
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250, // 250ms de pulsación prolongada requerida en móvil
+        tolerance: 5, // Permite que el dedo tiemble hasta 5px durante el delay
       },
     })
   );
