@@ -84,7 +84,7 @@ export function ExportDialog({ open, onOpenChange, sharedData }: ExportDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[100dvh] md:h-auto max-h-[100dvh] md:max-h-[90vh] w-full max-w-5xl flex-col gap-0 p-0 sm:max-w-5xl rounded-none md:rounded-lg">
+      <DialogContent className="flex h-dvh md:h-auto max-h-dvh md:max-h-[90vh] w-full max-w-5xl flex-col gap-0 p-0 sm:max-w-5xl rounded-none md:rounded-lg">
         <DialogHeader className="border-b px-5 py-4 shrink-0">
           <DialogTitle className="font-display text-lg">
             Exportar horario

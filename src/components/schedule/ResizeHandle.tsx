@@ -112,7 +112,7 @@ export function ResizeHandle({
 
       {isDragging && typeof document !== "undefined" && createPortal(
         <div 
-          className="fixed z-[9999] pointer-events-none rounded-md bg-foreground text-background px-2.5 py-1 text-xs font-medium shadow-xl whitespace-nowrap animate-in fade-in zoom-in duration-75"
+          className="fixed z-9999 pointer-events-none rounded-md bg-foreground text-background px-2.5 py-1 text-xs font-medium shadow-xl whitespace-nowrap animate-in fade-in zoom-in duration-75"
           style={{
             top: pointerPos.y + (position === "top" ? -40 : 20),
             left: pointerPos.x,
