@@ -88,12 +88,13 @@ export function ResizeHandle({
   return (
     <>
       <div
-        className={`absolute left-0 right-0 h-3 cursor-ns-resize flex justify-center opacity-0 group-hover:opacity-100 transition-opacity ${
+        className={`absolute left-0 right-0 h-4 cursor-ns-resize flex justify-center opacity-0 group-hover:opacity-100 transition-opacity touch-none ${
           position === "top" ? "top-0 items-start pt-0.5" : "bottom-0 items-end pb-0.5"
         }`}
         onPointerDown={(e) => {
           e.preventDefault();
           e.stopPropagation(); // Evitar que DndContext de dnd-kit capture el drag
+          e.currentTarget.setPointerCapture(e.pointerId); // Asegura que los eventos de movimiento sigan llegando a este elemento
           startY.current = e.clientY;
           dragStartMin.current = initialStartMin;
           dragEndMin.current = initialEndMin;
@@ -102,8 +103,11 @@ export function ResizeHandle({
           setPreviewEndMin(initialEndMin);
           setIsDragging(true);
         }}
+        onPointerUp={(e) => {
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }}
       >
-        <div className="w-8 h-1 rounded-full bg-foreground/20 hover:bg-foreground/40 transition-colors" />
+        <div className="w-8 h-1.5 rounded-full bg-foreground/30 hover:bg-foreground/50 transition-colors" />
       </div>
 
       {isDragging && typeof document !== "undefined" && createPortal(
